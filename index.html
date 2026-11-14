@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#1f4e79">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="律师费计算器">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>律师费计算器</title>
+<style>
+  :root {
+    --blue: #1f4e79;
+    --blue-light: #2e75b6;
+    --bg: #f4f6f9;
+    --card: #ffffff;
+    --text: #1a1a1a;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --risk: #b45309;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    padding: 16px;
+  }
+  .container { max-width: 560px; margin: 0 auto; }
+  header {
+    background: linear-gradient(135deg, var(--blue), var(--blue-light));
+    color: #fff;
+    padding: 20px 20px 18px;
+    border-radius: 14px 14px 0 0;
+  }
+  header h1 { font-size: 22px; font-weight: 700; letter-spacing: 1px; }
+  header p { font-size: 12.5px; opacity: .9; margin-top: 4px; }
+  .input-card {
+    background: var(--card);
+    padding: 18px 20px;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+  }
+  .input-card label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+  .input-row { display: flex; gap: 8px; align-items: center; }
+  .input-row input {
+    flex: 1;
+    font-size: 20px;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    outline: none;
+    -webkit-appearance: none;
+    font-variant-numeric: tabular-nums;
+  }
+  .input-row input:focus { border-color: var(--blue-light); box-shadow: 0 0 0 3px rgba(46,117,182,.12); }
+  .input-row .unit { font-size: 15px; color: var(--muted); white-space: nowrap; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 8px; }
+  .case-type { margin-top: 14px; }
+  .case-type select {
+    width: 100%;
+    font-size: 15px;
+    padding: 11px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    outline: none;
+    background: #fff;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .case-type select:focus { border-color: var(--blue-light); box-shadow: 0 0 0 3px rgba(46,117,182,.12); }
+  .results { background: var(--card); border: 1px solid var(--border); border-top: none; border-radius: 0 0 14px 14px; overflow: hidden; }
+  .block { padding: 18px 20px; }
+  .block + .block { border-top: 1px solid var(--border); }
+  .block-title {
+    font-size: 15px; font-weight: 700; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .block-title .tag {
+    font-size: 11px; font-weight: 500; color: #fff; border-radius: 4px;
+    padding: 2px 8px; letter-spacing: .5px;
+  }
+  .tag.guide { background: var(--blue-light); }
+  .tag.risk { background: #d97706; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 9px 6px; text-align: center; font-size: 14px; }
+  th { color: var(--muted); font-weight: 600; font-size: 12.5px; border-bottom: 1px solid var(--border); }
+  td { font-variant-numeric: tabular-nums; }
+  td.stage { text-align: left; font-weight: 500; }
+  .amount { font-weight: 700; color: var(--blue); font-size: 15px; }
+  .risk-result {
+    background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px;
+    padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .risk-result .label { font-size: 13px; color: var(--risk); font-weight: 600; }
+  .risk-result .value { font-size: 20px; font-weight: 700; color: var(--risk); font-variant-numeric: tabular-nums; }
+  .empty { text-align: center; color: var(--muted); padding: 30px 20px; font-size: 14px; }
+  footer { padding: 14px 20px; font-size: 11.5px; color: var(--muted); }
+  footer p { margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>律师费计算器</h1>
+    <p>江苏省律师服务收费 · 政府指导价</p>
+  </header>
+
+  <div class="input-card">
+    <label for="amount">争议标的额</label>
+    <div class="input-row">
+      <input type="number" id="amount" inputmode="decimal" min="0" step="any" placeholder="请输入金额">
+      <span class="unit">元</span>
+    </div>
+    <div class="hint">例：634 万元请输入 6340000；支持小数，实时计算</div>
+    <div class="case-type">
+      <label for="caseType">案件类型</label>
+      <select id="caseType">
+        <option value="simple">非疑难复杂案件</option>
+        <option value="complex">重大、疑难、复杂案件</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="results" id="results">
+    <div class="empty" id="empty">请输入标的额金额，自动计算律师费</div>
+
+    <div id="content" style="display:none;">
+      <div class="block">
+        <div class="block-title"><span class="tag guide">政府指导价</span><span id="guideTitle">按标的额分档累进（苏价费〔2017〕113号）</span></div>
+        <table>
+          <thead>
+            <tr><th>阶段</th><th>低标</th><th>高标</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="stage">一审</td><td class="amount" id="g1low">—</td><td class="amount" id="g1high">—</td></tr>
+            <tr><td class="stage">二审（减半）</td><td class="amount" id="g2low">—</td><td class="amount" id="g2high">—</td></tr>
+            <tr><td class="stage">执行（减半）</td><td class="amount" id="g3low">—</td><td class="amount" id="g3high">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="block">
+        <div class="block-title"><span class="tag risk">风险代理</span>最高收费限额（司发通〔2021〕87号）</div>
+        <div class="risk-result">
+          <span class="label">基础费＋风险费合计上限</span>
+          <span class="value" id="riskLimit">—</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>① 政府指导价（参考值）：苏价费〔2017〕113号《江苏省律师服务收费试行标准表》，涉及财产案件分档累进；二审、执行为"已代理前一阶段"减半收取，单独代理按一审标准。该标准属政府指导价，2019年12月1日起律师服务收费已改市场调节价，本栏结果仅供参考。</p>
+    <p>② 风险代理限额（现行有效，须遵守）：《关于进一步规范律师服务收费的意见》（司发通〔2021〕87号，司法部、国家发改委、市场监管总局）第六项，分档累计：100万以下18%、100—500万15%、500—1000万12%、1000—5000万9%、5000万以上6%。</p>
+    <p>③ 律师服务收费实行市场调节价，具体由律所与委托人协商确定；但风险代理收费总额不得超过上述②限额。</p>
+    <p>④ 重大、疑难、复杂案件（如中级以上法院一审、涉3个以上法律关系、新类型案件等）可在简单案件标准基础上上浮，但不高于简单案件5倍；风险代理限额不因重大疑难而上浮。</p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  var input = document.getElementById('amount');
+  var empty = document.getElementById('empty');
+  var content = document.getElementById('content');
+
+  function fmt(n) {
+    return Math.round(n).toLocaleString('zh-CN');
+  }
+
+  // 政府指导价（苏价费〔2017〕113号）分档累进
+  function calcGuide(amount) {
+    if (amount <= 0) return { low: 0, high: 0 };
+    var low = 0, high = 0;
+    if (amount <= 10000) {
+      low = 2500; high = 10000;
+      return { low: low, high: high };
+    }
+    low = 2500; high = 10000;
+    var seg;
+    seg = Math.min(amount, 100000) - 10000;      // 1万—10万
+    if (seg > 0) { low += seg * 0.06; high += seg * 0.07; }
+    seg = Math.min(amount, 500000) - 100000;      // 10万—50万
+    if (seg > 0) { low += seg * 0.05; high += seg * 0.06; }
+    seg = Math.min(amount, 1000000) - 500000;     // 50万—100万
+    if (seg > 0) { low += seg * 0.04; high += seg * 0.05; }
+    seg = Math.min(amount, 5000000) - 1000000;    // 100万—500万
+    if (seg > 0) { low += seg * 0.03; high += seg * 0.04; }
+    seg = Math.min(amount, 10000000) - 5000000;   // 500万—1000万
+    if (seg > 0) { low += seg * 0.02; high += seg * 0.03; }
+    seg = Math.min(amount, 100000000) - 10000000; // 1000万—1亿
+    if (seg > 0) { low += seg * 0.01; high += seg * 0.02; }
+    seg = amount - 100000000;                      // 1亿以上
+    if (seg > 0) { low += seg * 0.005; high += seg * 0.01; }
+    return { low: low, high: high };
+  }
+
+  // 风险代理收费最高限额（省指引第三十条）分档累计
+  function calcRisk(amount) {
+    var limit = 0, seg;
+    seg = Math.min(amount, 1000000);                // 100万以下：18%
+    limit += seg * 0.18;
+    seg = Math.min(amount, 5000000) - 1000000;      // 100—500万：15%
+    if (seg > 0) limit += seg * 0.15;
+    seg = Math.min(amount, 10000000) - 5000000;     // 500—1000万：12%
+    if (seg > 0) limit += seg * 0.12;
+    seg = Math.min(amount, 50000000) - 10000000;    // 1000—5000万：9%
+    if (seg > 0) limit += seg * 0.09;
+    seg = amount - 50000000;                         // 5000万以上：6%
+    if (seg > 0) limit += seg * 0.06;
+    return limit;
+  }
+
+  function render() {
+    var val = parseFloat(input.value);
+    if (isNaN(val) || val <= 0) {
+      empty.style.display = 'block';
+      content.style.display = 'none';
+      return;
+    }
+    empty.style.display = 'none';
+    content.style.display = 'block';
+
+    var g = calcGuide(val);
+    var r = calcRisk(val);
+    var isComplex = document.getElementById('caseType').value === 'complex';
+    var low = isComplex ? g.low * 5 : g.low;
+    var high = isComplex ? g.high * 5 : g.high;
+    document.getElementById('guideTitle').textContent = '按标的额分档累进（苏价费〔2017〕113号）';
+
+    document.getElementById('g1low').textContent = fmt(low);
+    document.getElementById('g1high').textContent = fmt(high);
+    document.getElementById('g2low').textContent = fmt(low / 2);
+    document.getElementById('g2high').textContent = fmt(high / 2);
+    document.getElementById('g3low').textContent = fmt(low / 2);
+    document.getElementById('g3high').textContent = fmt(high / 2);
+    document.getElementById('riskLimit').textContent = fmt(r);
+  }
+
+  input.addEventListener('input', render);
+  document.getElementById('caseType').addEventListener('change', render);
+
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('./sw.js').catch(function () {});
+    });
+  }
+})();
+</script>
+</body>
+</html>
