@@ -231,7 +231,7 @@
   var content = document.getElementById('content');
 
   function fmt(n) {
-    return Math.round(n).toLocaleString('zh-CN');
+    return (Math.round(n * 100) / 100).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
   // 政府指导价（苏价费〔2017〕113号）分档累进
