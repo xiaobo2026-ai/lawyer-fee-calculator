@@ -1,4 +1,4 @@
-const CACHE = 'lawfee-calc-v14';
+const CACHE = 'lawfee-calc-v15';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './logo.png'];
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
