@@ -1,7 +1,7 @@
 {
-  "name": "律师费计算器",
-  "short_name": "律师费",
-  "description": "江苏省律师服务收费计算器：政府指导价（参考）+ 风险代理限额（现行有效）",
+  "name": "法律计算器",
+  "short_name": "法律计算",
+  "description": "法律计算器：律师费（政府指导价/风险代理）+ 诉讼费（受理费/保全费/执行费）",
   "lang": "zh-CN",
   "start_url": "./index.html",
   "scope": "./",
