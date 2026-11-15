@@ -86,6 +86,7 @@
   }
   .tag.guide { background: var(--blue-light); }
   .tag.risk { background: #d97706; }
+  .tag.lit { background: #0f766e; }
   table { width: 100%; border-collapse: collapse; }
   th, td { padding: 9px 6px; text-align: center; font-size: 14px; }
   th { color: var(--muted); font-weight: 600; font-size: 12.5px; border-bottom: 1px solid var(--border); }
@@ -151,6 +152,20 @@
           <span class="value" id="riskLimit">—</span>
         </div>
       </div>
+
+      <div class="block">
+        <div class="block-title"><span class="tag lit">诉讼费用</span>案件受理费 · 保全费 · 执行费（《诉讼费用交纳办法》）</div>
+        <table>
+          <thead>
+            <tr><th>项目</th><th>金额</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="stage">案件受理费</td><td class="amount" id="caseFee">—</td></tr>
+            <tr><td class="stage">保全费（封顶 5000 元）</td><td class="amount" id="preserveFee">—</td></tr>
+            <tr><td class="stage">执行费</td><td class="amount" id="execFee">—</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -159,6 +174,7 @@
     <p>② 风险代理限额（现行有效，须遵守）：《关于进一步规范律师服务收费的意见》（司发通〔2021〕87号，司法部、国家发改委、市场监管总局）第六项，分档累计：100万以下18%、100—500万15%、500—1000万12%、1000—5000万9%、5000万以上6%。</p>
     <p>③ 律师服务收费实行市场调节价，具体由律所与委托人协商确定；但风险代理收费总额不得超过上述②限额。</p>
     <p>④ 重大、疑难、复杂案件（如中级以上法院一审、涉3个以上法律关系、新类型案件等）可在简单案件标准基础上上浮，但不高于简单案件5倍；风险代理限额不因重大疑难而上浮。</p>
+    <p>⑤ 诉讼费用：依《诉讼费用交纳办法》（国务院令第481号）第十三条、第十四条计算；保全费按标的额估算、封顶5000元，实际以申请保全的财产数额为准。</p>
   </footer>
 </div>
 
@@ -215,6 +231,60 @@
     return limit;
   }
 
+  // 案件受理费（财产案件，《诉讼费用交纳办法》第十三条）分段累计
+  function calcCaseFee(amount) {
+    if (amount <= 0) return 0;
+    if (amount <= 10000) return 50;
+    var fee = 50, seg;
+    seg = Math.min(amount, 100000) - 10000;       // 1—10万：2.5%
+    if (seg > 0) fee += seg * 0.025;
+    seg = Math.min(amount, 200000) - 100000;      // 10—20万：2%
+    if (seg > 0) fee += seg * 0.02;
+    seg = Math.min(amount, 500000) - 200000;      // 20—50万：1.5%
+    if (seg > 0) fee += seg * 0.015;
+    seg = Math.min(amount, 1000000) - 500000;     // 50—100万：1%
+    if (seg > 0) fee += seg * 0.01;
+    seg = Math.min(amount, 2000000) - 1000000;    // 100—200万：0.9%
+    if (seg > 0) fee += seg * 0.009;
+    seg = Math.min(amount, 5000000) - 2000000;    // 200—500万：0.8%
+    if (seg > 0) fee += seg * 0.008;
+    seg = Math.min(amount, 10000000) - 5000000;   // 500—1000万：0.7%
+    if (seg > 0) fee += seg * 0.007;
+    seg = Math.min(amount, 20000000) - 10000000;  // 1000—2000万：0.6%
+    if (seg > 0) fee += seg * 0.006;
+    seg = amount - 20000000;                       // 2000万以上：0.5%
+    if (seg > 0) fee += seg * 0.005;
+    return fee;
+  }
+
+  // 保全费（《诉讼费用交纳办法》第十四条第二款）封顶5000
+  function calcPreserveFee(amount) {
+    if (amount <= 0) return 0;
+    if (amount <= 1000) return 30;
+    var fee = 30, seg;
+    seg = Math.min(amount, 100000) - 1000;        // 1000—10万：1%
+    if (seg > 0) fee += seg * 0.01;
+    seg = amount - 100000;                         // 超过10万：0.5%
+    if (seg > 0) fee += seg * 0.005;
+    return Math.min(fee, 5000);
+  }
+
+  // 执行费（《诉讼费用交纳办法》第十四条第一款第二项）
+  function calcExecFee(amount) {
+    if (amount <= 0) return 0;
+    if (amount <= 10000) return 50;
+    var fee = 50, seg;
+    seg = Math.min(amount, 500000) - 10000;       // 1—50万：1.5%
+    if (seg > 0) fee += seg * 0.015;
+    seg = Math.min(amount, 5000000) - 500000;     // 50—500万：1%
+    if (seg > 0) fee += seg * 0.01;
+    seg = Math.min(amount, 10000000) - 5000000;   // 500—1000万：0.5%
+    if (seg > 0) fee += seg * 0.005;
+    seg = amount - 10000000;                       // 超过1000万：0.1%
+    if (seg > 0) fee += seg * 0.001;
+    return fee;
+  }
+
   function render() {
     var val = parseFloat(input.value);
     if (isNaN(val) || val <= 0) {
@@ -239,6 +309,9 @@
     document.getElementById('g3low').textContent = fmt(low / 2);
     document.getElementById('g3high').textContent = fmt(high / 2);
     document.getElementById('riskLimit').textContent = fmt(r);
+    document.getElementById('caseFee').textContent = fmt(calcCaseFee(val));
+    document.getElementById('preserveFee').textContent = fmt(calcPreserveFee(val));
+    document.getElementById('execFee').textContent = fmt(calcExecFee(val));
   }
 
   input.addEventListener('input', render);
