@@ -94,12 +94,21 @@
   td { font-variant-numeric: tabular-nums; }
   td.stage { text-align: left; font-weight: 500; }
   .amount { font-weight: 700; color: var(--blue); font-size: 15px; }
+  .risk-toggle {
+    display: flex; align-items: center; gap: 8px;
+    background: none; border: none; cursor: pointer;
+    padding: 0; font: inherit;
+    width: 100%; text-align: left; margin-bottom: 12px;
+  }
+  .risk-toggle-label { font-size: 15px; font-weight: 700; color: var(--text); }
+  .risk-toggle-arrow { color: var(--muted); font-size: 14px; }
   .risk-result {
     background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px;
     padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;
   }
   .risk-result .label { font-size: 13px; color: var(--risk); font-weight: 600; }
   .risk-result .value { font-size: 20px; font-weight: 700; color: var(--risk); font-variant-numeric: tabular-nums; }
+  .risk-note { font-size: 11.5px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
   .empty { text-align: center; color: var(--muted); padding: 30px 20px; font-size: 14px; }
   footer { padding: 14px 20px; font-size: 11.5px; color: var(--muted); }
   footer p { margin-bottom: 4px; }
@@ -161,10 +170,15 @@
       </div>
 
       <div class="block">
-        <div class="block-title"><span class="tag risk">风险代理</span>最高收费限额（司发通〔2021〕87号）</div>
-        <div class="risk-result">
-          <span class="label">基础费＋风险费合计上限</span>
-          <span class="value" id="riskLimit">—</span>
+        <button type="button" class="risk-toggle" id="riskToggle" onclick="toggleRisk()">
+          <span class="tag risk">风险代理</span><span class="risk-toggle-label">限额</span><span class="risk-toggle-arrow" id="riskArrow">▸</span>
+        </button>
+        <div id="riskContent" style="display:none;">
+          <div class="risk-result">
+            <span class="label">基础费＋风险费合计上限</span>
+            <span class="value" id="riskLimit">—</span>
+          </div>
+          <div class="risk-note">依据司发通〔2021〕87号，分档累计：100万以下18%、100—500万15%、500—1000万12%、1000—5000万9%、5000万以上6%。</div>
         </div>
       </div>
 
@@ -187,7 +201,7 @@
 
   <footer>
     <p>① 律师费政府指导价（参考值）：苏价费〔2017〕113号《江苏省律师服务收费试行标准表》，涉及财产案件分档累进；二审、执行为"已代理前一阶段"减半收取，单独代理按一审标准。该标准属政府指导价，2019年12月1日起律师服务收费已改市场调节价，本栏结果仅供参考。</p>
-    <p>② 风险代理限额（现行有效，须遵守）：《关于进一步规范律师服务收费的意见》（司发通〔2021〕87号，司法部、国家发改委、市场监管总局）第六项，分档累计：100万以下18%、100—500万15%、500—1000万12%、1000—5000万9%、5000万以上6%。</p>
+    <p>② 风险代理收费须遵守《关于进一步规范律师服务收费的意见》（司发通〔2021〕87号）规定的最高限额。</p>
     <p>③ 律师服务收费实行市场调节价，具体由律所与委托人协商确定；但风险代理收费总额不得超过上述②限额。</p>
     <p>④ 重大、疑难、复杂案件（如中级以上法院一审、涉3个以上法律关系、新类型案件等）可在简单案件标准基础上上浮，但不高于简单案件5倍；风险代理限额不因重大疑难而上浮。</p>
     <p>⑤ 诉讼费用：依《诉讼费用交纳办法》（国务院令第481号）第十三条、第十四条计算；受理费按案件性质分别计——财产案件按标的额分段累计；知识产权案件有争议金额按财产标准、无争议金额每件500—1000元；离婚按财产分割总额（超20万部分0.5%）、人格权按损害赔偿额（超5万部分另计）、劳动争议固定10元；商标/专利/海事行政每件100元、其他行政每件50元、其他非财产50—100元。保全费按标的额估算、封顶5000元，非财产案件保全费/执行费不适用。</p>
@@ -367,6 +381,18 @@
     document.getElementById('caseFeeHalf').textContent = caseFee.half;
     document.getElementById('preserveFee').textContent = isProperty ? fmt(calcPreserveFee(val)) : '—';
     document.getElementById('execFee').textContent = isProperty ? fmt(calcExecFee(val)) : '—';
+  }
+
+  function toggleRisk() {
+    var content = document.getElementById('riskContent');
+    var arrow = document.getElementById('riskArrow');
+    if (content.style.display === 'none') {
+      content.style.display = 'block';
+      arrow.textContent = '▾';
+    } else {
+      content.style.display = 'none';
+      arrow.textContent = '▸';
+    }
   }
 
   input.addEventListener('input', render);
