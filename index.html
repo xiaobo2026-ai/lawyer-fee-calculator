@@ -175,7 +175,8 @@
             <tr><th>项目</th><th>金额</th></tr>
           </thead>
           <tbody>
-            <tr><td class="stage">案件受理费</td><td class="amount" id="caseFee">—</td></tr>
+            <tr><td class="stage">案件受理费（全额）</td><td class="amount" id="caseFeeFull">—</td></tr>
+            <tr><td class="stage">案件受理费（减半）</td><td class="amount" id="caseFeeHalf">—</td></tr>
             <tr><td class="stage">保全费（封顶 5000 元）</td><td class="amount" id="preserveFee">—</td></tr>
             <tr><td class="stage">执行费</td><td class="amount" id="execFee">—</td></tr>
           </tbody>
@@ -300,39 +301,39 @@
     return fee;
   }
 
-  // 案件受理费按案件性质（《诉讼费用交纳办法》第十三条）
+  // 案件受理费按案件性质（《诉讼费用交纳办法》第十三条），返回全额/减半
   function calcCaseFeeByNature(amount, nature) {
+    var full, half;
     if (nature === 'divorce') {
       var extra = Math.max(0, amount - 200000) * 0.005;
-      return { text: fmt(50 + extra) + ' ~ ' + fmt(300 + extra) };
+      full = fmt(50 + extra) + ' ~ ' + fmt(300 + extra);
+      half = fmt((50 + extra) / 2) + ' ~ ' + fmt((300 + extra) / 2);
+    } else if (nature === 'personality') {
+      var extra2 = 0, seg2;
+      seg2 = Math.min(amount, 100000) - 50000;
+      if (seg2 > 0) extra2 += seg2 * 0.01;
+      seg2 = amount - 100000;
+      if (seg2 > 0) extra2 += seg2 * 0.005;
+      full = fmt(100 + extra2) + ' ~ ' + fmt(500 + extra2);
+      half = fmt((100 + extra2) / 2) + ' ~ ' + fmt((500 + extra2) / 2);
+    } else if (nature === 'ip_nodispute') {
+      full = fmt(500) + ' ~ ' + fmt(1000);
+      half = fmt(250) + ' ~ ' + fmt(500);
+    } else if (nature === 'labor') {
+      full = fmt(10); half = fmt(5);
+    } else if (nature === 'admin_ip') {
+      full = fmt(100); half = fmt(50);
+    } else if (nature === 'admin_other') {
+      full = fmt(50); half = fmt(25);
+    } else if (nature === 'nonproperty') {
+      full = fmt(50) + ' ~ ' + fmt(100);
+      half = fmt(25) + ' ~ ' + fmt(50);
+    } else {
+      var fee = calcCaseFee(amount);
+      full = fmt(fee);
+      half = fmt(fee / 2);
     }
-    if (nature === 'personality') {
-      var extra = 0, seg;
-      seg = Math.min(amount, 100000) - 50000;
-      if (seg > 0) extra += seg * 0.01;
-      seg = amount - 100000;
-      if (seg > 0) extra += seg * 0.005;
-      return { text: fmt(100 + extra) + ' ~ ' + fmt(500 + extra) };
-    }
-    if (nature === 'labor') {
-      return { text: fmt(10) };
-    }
-    if (nature === 'ip_disputed') {
-      return { text: fmt(calcCaseFee(amount)) };
-    }
-    if (nature === 'ip_nodispute') {
-      return { text: fmt(500) + ' ~ ' + fmt(1000) };
-    }
-    if (nature === 'admin_ip') {
-      return { text: fmt(100) };
-    }
-    if (nature === 'admin_other') {
-      return { text: fmt(50) };
-    }
-    if (nature === 'nonproperty') {
-      return { text: fmt(50) + ' ~ ' + fmt(100) };
-    }
-    return { text: fmt(calcCaseFee(amount)) };
+    return { full: full, half: half };
   }
 
   function render() {
@@ -361,7 +362,9 @@
     document.getElementById('riskLimit').textContent = fmt(r);
     var nature = document.getElementById('caseNature').value;
     var isProperty = (nature === 'property' || nature === 'ip_disputed');
-    document.getElementById('caseFee').textContent = calcCaseFeeByNature(val, nature).text;
+    var caseFee = calcCaseFeeByNature(val, nature);
+    document.getElementById('caseFeeFull').textContent = caseFee.full;
+    document.getElementById('caseFeeHalf').textContent = caseFee.half;
     document.getElementById('preserveFee').textContent = isProperty ? fmt(calcPreserveFee(val)) : '—';
     document.getElementById('execFee').textContent = isProperty ? fmt(calcExecFee(val)) : '—';
   }
