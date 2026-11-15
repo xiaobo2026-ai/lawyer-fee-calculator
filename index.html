@@ -129,10 +129,13 @@
       <label for="caseNature">案件性质（影响受理费）</label>
       <select id="caseNature">
         <option value="property">财产案件</option>
+        <option value="ip_disputed">知识产权案件（有争议金额）</option>
+        <option value="ip_nodispute">知识产权案件（无争议金额）</option>
         <option value="divorce">离婚案件</option>
         <option value="personality">人格权纠纷</option>
         <option value="labor">劳动争议</option>
-        <option value="admin">行政案件</option>
+        <option value="admin_ip">商标、专利、海事行政案件</option>
+        <option value="admin_other">其他行政案件</option>
         <option value="nonproperty">其他非财产案件</option>
       </select>
     </div>
@@ -185,7 +188,7 @@
     <p>② 风险代理限额（现行有效，须遵守）：《关于进一步规范律师服务收费的意见》（司发通〔2021〕87号，司法部、国家发改委、市场监管总局）第六项，分档累计：100万以下18%、100—500万15%、500—1000万12%、1000—5000万9%、5000万以上6%。</p>
     <p>③ 律师服务收费实行市场调节价，具体由律所与委托人协商确定；但风险代理收费总额不得超过上述②限额。</p>
     <p>④ 重大、疑难、复杂案件（如中级以上法院一审、涉3个以上法律关系、新类型案件等）可在简单案件标准基础上上浮，但不高于简单案件5倍；风险代理限额不因重大疑难而上浮。</p>
-    <p>⑤ 诉讼费用：依《诉讼费用交纳办法》（国务院令第481号）第十三条、第十四条计算；受理费按案件性质分别计——财产案件按标的额分段累计，离婚按财产分割总额（超20万部分0.5%）、人格权按损害赔偿额（超5万部分另计）、劳动争议固定10元、行政固定50元、其他非财产50—100元；保全费按标的额估算、封顶5000元，非财产案件保全费/执行费不适用。</p>
+    <p>⑤ 诉讼费用：依《诉讼费用交纳办法》（国务院令第481号）第十三条、第十四条计算；受理费按案件性质分别计——财产案件按标的额分段累计；知识产权案件有争议金额按财产标准、无争议金额每件500—1000元；离婚按财产分割总额（超20万部分0.5%）、人格权按损害赔偿额（超5万部分另计）、劳动争议固定10元；商标/专利/海事行政每件100元、其他行政每件50元、其他非财产50—100元。保全费按标的额估算、封顶5000元，非财产案件保全费/执行费不适用。</p>
   </footer>
 </div>
 
@@ -313,7 +316,16 @@
     if (nature === 'labor') {
       return { text: fmt(10) };
     }
-    if (nature === 'admin') {
+    if (nature === 'ip_disputed') {
+      return { text: fmt(calcCaseFee(amount)) };
+    }
+    if (nature === 'ip_nodispute') {
+      return { text: fmt(500) + ' ~ ' + fmt(1000) };
+    }
+    if (nature === 'admin_ip') {
+      return { text: fmt(100) };
+    }
+    if (nature === 'admin_other') {
       return { text: fmt(50) };
     }
     if (nature === 'nonproperty') {
@@ -347,7 +359,7 @@
     document.getElementById('g3high').textContent = fmt(high / 2);
     document.getElementById('riskLimit').textContent = fmt(r);
     var nature = document.getElementById('caseNature').value;
-    var isProperty = (nature === 'property');
+    var isProperty = (nature === 'property' || nature === 'ip_disputed');
     document.getElementById('caseFee').textContent = calcCaseFeeByNature(val, nature).text;
     document.getElementById('preserveFee').textContent = isProperty ? fmt(calcPreserveFee(val)) : '—';
     document.getElementById('execFee').textContent = isProperty ? fmt(calcExecFee(val)) : '—';
@@ -362,7 +374,6 @@
       navigator.serviceWorker.register('./sw.js').catch(function () {});
     });
   }
-  document.getElementById('caseNature').addEventListener('change', render);
 })();
 </script>
 </body>
