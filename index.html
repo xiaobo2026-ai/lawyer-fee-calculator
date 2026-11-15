@@ -390,12 +390,12 @@
     document.getElementById('execFee').textContent = isProperty ? fmt(calcExecFee(val)) : '—';
   }
 
-  function openRisk() {
+  window.openRisk = function () {
     document.getElementById('riskModal').style.display = 'block';
-  }
-  function closeRisk() {
+  };
+  window.closeRisk = function () {
     document.getElementById('riskModal').style.display = 'none';
-  }
+  };
 
   input.addEventListener('input', render);
   document.getElementById('caseType').addEventListener('change', render);
